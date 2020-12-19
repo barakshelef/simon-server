@@ -58,8 +58,7 @@ async def relay(websocket, path):
         await unregister(websocket, game_id)
 
 if __name__ == '__main__':
-
-    start_server = websockets.serve(relay, "localhost", 6789)
+    start_server = websockets.serve(relay, "0.0.0.0", 8080)
 
     asyncio.get_event_loop().run_until_complete(start_server)
     asyncio.get_event_loop().run_forever()
