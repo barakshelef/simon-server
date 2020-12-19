@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>WebSocket demo</title>
+        <style type="text/css">
+            body {
+                font-family: "Courier New", sans-serif;
+                text-align: center;
+            }
+        </style>
+    </head>
+    <body>
+        <div>
+            <input class="game" type="number" value="0"><div class="connect button">Connect</div>
+        </div>
+        <div class="buttons">
+            <input class="position" type="number" value="0"><div class="play button">&blacktriangleright;</div><br>
+            <input class="index" type="number" value="0"><div class="next button">&curvearrowright;</div><br>
+            <div class="error button">ERROR</div>
+        </div>
+        <div class="state">
+            <span class="users">?</span> online<br>
+            <span class="type">?</span> <span class="value">?</span>
+        </div>
+        <script>
+            var game = document.querySelector('.game'),
+                connect = document.querySelector('.connect'),
+                position = document.querySelector('.position'),
+                play = document.querySelector('.play'),
+                index = document.querySelector('.index'),
+                next = document.querySelector('.next'),
+                error = document.querySelector('.error'),
+                users = document.querySelector('.users'),
+                type = document.querySelector('.type'),
+                value = document.querySelector('.value'),
+                websocket = null;
+
+            connect.onclick = function (event) {
+                websocket = new WebSocket("wss://simon-test-2rtlcvktaa-uc.a.run.app/" + game.value);
+                play.onclick = function (event) {
+                websocket.send(JSON.stringify({type: 'play', position: position.value}));
+            }
+            next.onclick = function (event) {
+                websocket.send(JSON.stringify({type: 'next', index: index.value}));
+            }
+            error.onclick = function (event) {
+                websocket.send(JSON.stringify({type: 'error'}));
+            }
+            websocket.onmessage = function (event) {
+                data = JSON.parse(event.data);
+                switch (data.type) {
+                    case 'play':
+                        type.textContent = 'play';
+                        value.textContent = data.position;
+                        break;
+                    case 'next':
+                        type.textContent = 'next';
+                        value.textContent = data.index;
+                        break;
+                    case 'error':
+                        type.textContent = 'error';
+                        value.textContent = '';
+                        break;
+                    case 'users':
+                        users.textContent = (
+                            data.count.toString() + " user" +
+                            (data.count == 1 ? "" : "s"));
+                        break;
+                    default:
+                        console.error(
+                            "unsupported event", data);
+                }
+            };
+            }
+
+        </script>
+    </body>
+</html>
