@@ -39,7 +39,10 @@ g_new_storage: Dict[int, Game] = {}
 
 class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
     def setup(self):
-        handshake_message = str(self.request.recv(1024), 'ascii')
+        handshake_message = ''
+        while not handshake_message:
+            handshake_message = str(self.request.recv(1024), 'ascii')
+
         if handshake_message == STOP_SERVER_MESSAGE:
             print("Got STOP_SERVER_MESSAGE handshake")
             SERVER_STOP_EVENT.set()
@@ -79,8 +82,7 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
 
 
 if __name__ == "__main__":
-    # Port 0 means to select an arbitrary unused port
-    HOST, PORT = "localhost", 9999
+    HOST, PORT = "0.0.0.0", 9999
 
     server = ThreadedTCPServer((HOST, PORT), ThreadedTCPRequestHandler)
     with server:
