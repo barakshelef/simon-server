@@ -1,2 +1,2 @@
-# simon-server
-Simon Relay Server
+# Simon Relay Server
+The Simon Relay Server. It relays.
