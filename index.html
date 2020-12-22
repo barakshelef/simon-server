@@ -4,26 +4,41 @@
         <title>WebSocket demo</title>
         <style type="text/css">
             body {
-                font-family: "Courier New", sans-serif;
                 text-align: center;
+            }
+
+            div {
+                margin: 10px;
+            }
+
+            .button {
+              border: 1px solid black;
+              padding: 15px 32px;
+              text-align: center;
+              display: inline-block;
+            }
+
+            .controls {
+               display: none;
             }
         </style>
     </head>
     <body>
-        <div>
-            <input class="game" type="number" value="0"><div class="connect button">Connect</div>
-        </div>
-        <div class="buttons">
-            <input class="position" type="number" value="0"><div class="play button">&blacktriangleright;</div><br>
-            <input class="index" type="number" value="0"><div class="next button">&curvearrowright;</div><br>
-            <div class="error button">ERROR</div>
-        </div>
-        <div class="state">
-            <span class="users">?</span> online<br>
-            <span class="type">?</span> <span class="value">?</span>
-        </div>
+    <div>
+        <div>Server: <input class="server" value="ws://localhost:8080"></div>
+        <div>Game ID: <input class="game" type="number" value="0"></div>
+        <div><span class="connect button">Connect</span></div>
+    </div>
+    <div class="controls">
+        <div><span class="play button">Play</span> <input class="position" type="number" value="0"></div>
+        <div><span class="next button">Next</span> <input class="index" type="number" value="0"></div>
+        <div><span class="error button">Error</span></div>
+        <div><span class="users">?</span> online</div>
+        <div><span class="type">?</span> <span class="value">?</span></div>
+    </div>
         <script>
-            var game = document.querySelector('.game'),
+            var server = document.querySelector('.server'),
+                game = document.querySelector('.game'),
                 connect = document.querySelector('.connect'),
                 position = document.querySelector('.position'),
                 play = document.querySelector('.play'),
@@ -33,46 +48,59 @@
                 users = document.querySelector('.users'),
                 type = document.querySelector('.type'),
                 value = document.querySelector('.value'),
+                controls = document.querySelector('.controls'),
                 websocket = null;
 
             connect.onclick = function (event) {
-                websocket = new WebSocket("wss://simon-test-2rtlcvktaa-uc.a.run.app/" + game.value);
-                play.onclick = function (event) {
+                if (websocket === null) {
+                    websocket = new WebSocket(server.value + "/" + game.value);
+
+                    websocket.onmessage = function (event) {
+                        connect.textContent = "Disconnect"
+                        controls.style.display = "block";
+                        data = JSON.parse(event.data);
+                        switch (data.type) {
+                            case 'play':
+                                type.textContent = 'play';
+                                value.textContent = data.position;
+                                break;
+                            case 'next':
+                                type.textContent = 'next';
+                                value.textContent = data.index;
+                                break;
+                            case 'error':
+                                type.textContent = 'error';
+                                value.textContent = '';
+                                break;
+                            case 'users':
+                                users.textContent = (
+                                    data.count.toString() + " user" +
+                                    (data.count == 1 ? "" : "s"));
+                                break;
+                            default:
+                                console.error(
+                                    "unsupported event", data);
+                        }
+                    };
+                } else {
+                    websocket.close();
+                    websocket = null;
+                    connect.textContent = "Connect"
+                    controls.style.display = "none";
+                }
+            }
+
+            play.onclick = function (event) {
                 websocket.send(JSON.stringify({type: 'play', position: position.value}));
             }
+
             next.onclick = function (event) {
                 websocket.send(JSON.stringify({type: 'next', index: index.value}));
             }
+
             error.onclick = function (event) {
                 websocket.send(JSON.stringify({type: 'error'}));
             }
-            websocket.onmessage = function (event) {
-                data = JSON.parse(event.data);
-                switch (data.type) {
-                    case 'play':
-                        type.textContent = 'play';
-                        value.textContent = data.position;
-                        break;
-                    case 'next':
-                        type.textContent = 'next';
-                        value.textContent = data.index;
-                        break;
-                    case 'error':
-                        type.textContent = 'error';
-                        value.textContent = '';
-                        break;
-                    case 'users':
-                        users.textContent = (
-                            data.count.toString() + " user" +
-                            (data.count == 1 ? "" : "s"));
-                        break;
-                    default:
-                        console.error(
-                            "unsupported event", data);
-                }
-            };
-            }
-
         </script>
     </body>
 </html>
