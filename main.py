@@ -51,9 +51,12 @@ async def relay(websocket, path):
     game_id = path[1:]
     user_id = await register(websocket, game_id)
     try:
-        async for message in websocket:
-            print(f"{game_id}#{user_id}: {message}")
-            await notify(message, game_id)
+        try:
+            async for message in websocket:
+                print(f"{game_id}#{user_id}: {message}")
+                await notify(message, game_id)
+        except websockets.ConnectionClosedError:
+            pass
     finally:
         await unregister(websocket, game_id)
 
