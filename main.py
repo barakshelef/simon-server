@@ -63,7 +63,10 @@ async def relay(websocket, path):
         await unregister(websocket, game_id)
 
 if __name__ == '__main__':
-    start_server = websockets.serve(relay, "0.0.0.0", int(os.environ.get('SIMON_PORT', "8080")))
+    IP, PORT = "0.0.0.0", int(os.environ.get('SIMON_PORT', "3316"))
+    start_server = websockets.serve(relay, IP, PORT)
+
+    print(f"Listening on {IP}:{PORT}")
 
     asyncio.get_event_loop().run_until_complete(start_server)
     asyncio.get_event_loop().run_forever()
